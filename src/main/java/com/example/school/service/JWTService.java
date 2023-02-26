@@ -1,0 +1,39 @@
+package com.example.school.service;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.example.school.entity.User;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+@Service
+public class JWTService {
+
+    @Value("${api.security.token.secret}")
+    private String secret;
+
+    public String generateJWT(User user){
+        try {
+            var algoritmo = Algorithm.HMAC256(secret);
+            return JWT.create()
+                    .withIssuer("School API")
+                    .withSubject(user.getUsername())
+                    .withClaim("user-type", user.getUserType().toString())
+                    .withExpiresAt(expiresDate())
+                    .sign(algoritmo);
+        } catch (JWTCreationException exception){
+            throw new RuntimeException("error on generate jwt token", exception);
+        }
+    }
+
+    private Instant expiresDate() {
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+
+
+}
