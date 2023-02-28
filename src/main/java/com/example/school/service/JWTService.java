@@ -19,21 +19,18 @@ public class JWTService {
 
     public String generateJWT(User user){
         try {
-            var algoritmo = Algorithm.HMAC256(secret);
+            var algorithm = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("School API")
                     .withSubject(user.getUsername())
                     .withClaim("user-type", user.getUserType().toString())
                     .withExpiresAt(expiresDate())
-                    .sign(algoritmo);
+                    .sign(algorithm);
         } catch (JWTCreationException exception){
             throw new RuntimeException("error on generate jwt token", exception);
         }
     }
-
     private Instant expiresDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
-
-
 }
