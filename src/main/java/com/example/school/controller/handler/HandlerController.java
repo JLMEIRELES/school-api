@@ -20,7 +20,7 @@ public class HandlerController {
         return ResponseEntity.badRequest().body(err.stream().map(HandlerData::new).toList());
     }
 
-    private record HandlerData(String campo, String mensagem) {
+    private record HandlerData(String field, String message) {
         public HandlerData(FieldError e) {
             this(e.getField(), e.getDefaultMessage());
         }
