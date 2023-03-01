@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -20,7 +21,7 @@ import java.util.Date;
 public class Student extends User{
     private String registration;
 
-    public Student(String name, String cpf, String email, String password, Date bornDate, UserType userType, String registration) {
+    public Student(String name, String cpf, String email, String password, LocalDate bornDate, UserType userType, String registration) {
         super(name, cpf, email, password, bornDate, userType);
         this.registration = registration;
     }

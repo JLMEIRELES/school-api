@@ -1,0 +1,1 @@
+ALTER TABLE students ALTER COLUMN registration TYPE VARCHAR(1000);

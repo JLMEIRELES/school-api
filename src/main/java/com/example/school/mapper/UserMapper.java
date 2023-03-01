@@ -10,4 +10,5 @@ public class UserMapper {
     public UserData userToUserData(User user){
         return new UserData(user.getName(), DataHelper.toString(user.getBornDate()), user.getEmail(), user.getUserType().toString());
     }
+
 }
