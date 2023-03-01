@@ -9,9 +9,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -30,9 +30,18 @@ public class User implements UserDetails {
     private String cpf;
     private String email;
     private String password;
-    private Date bornDate;
+    private LocalDate bornDate;
     @Enumerated(EnumType.STRING)
     private UserType userType;
+
+    public User(String name, String cpf, String email, String password, LocalDate bornDate, UserType userType) {
+        this.name = name;
+        this.cpf = cpf;
+        this.email = email;
+        this.password = password;
+        this.bornDate = bornDate;
+        this.userType = userType;
+    }
 
     @Override
     public boolean equals(Object o) {
