@@ -1,14 +1,21 @@
 package com.example.school.controller.handler;
 
+import com.example.school.mapper.ExceptionMapper;
+import com.example.school.records.exceptions.HandlerData;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class HandlerController {
+
+    @Autowired
+    private ExceptionMapper exceptionMapper;
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity error404Treatment() {
         return ResponseEntity.notFound().build();
@@ -20,9 +27,9 @@ public class HandlerController {
         return ResponseEntity.badRequest().body(err.stream().map(HandlerData::new).toList());
     }
 
-    private record HandlerData(String field, String message) {
-        public HandlerData(FieldError e) {
-            this(e.getField(), e.getDefaultMessage());
-        }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity error403Treatment(RuntimeException exception){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exceptionMapper.toExceptionData(exception));
     }
+
 }

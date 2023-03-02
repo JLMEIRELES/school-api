@@ -38,10 +38,10 @@ public class UserController {
 
     @PostMapping("/create-student")
     @Transactional
-    public ResponseEntity createStudent(@RequestBody @Valid UserRequestData requestData, UriComponentsBuilder uriBuilder){
+    public ResponseEntity createStudent(@RequestBody @Valid UserRequestData requestData, UriComponentsBuilder uriBuilder) {
         Student student = studentService.createStudent(requestData);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(student.getId()).toUri();
-
-        return ResponseEntity.created(uri).body(student);
+        UserData response = userMapper.userToUserData(student);
+        return ResponseEntity.created(uri).body(response);
     }
 }
