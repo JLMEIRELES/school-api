@@ -2,6 +2,8 @@ package com.example.school.security;
 
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.example.school.entity.User;
+import com.example.school.entity.UserType;
 import com.example.school.records.exceptions.ExceptionData;
 import com.example.school.service.JWTService;
 import com.example.school.service.UserService;
@@ -19,6 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -39,6 +44,18 @@ public class SecurityFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                String requestURI = request.getRequestURI();
+                String[] uriParts = requestURI.split("/");
+                String[] createStatements = {"create-student", "create,administrator", "create-teacher"};
+                if (Arrays.stream(uriParts).anyMatch(part -> List.of(createStatements).contains(part))) {
+                    User principal = (User) authentication.getPrincipal();
+                    if (principal.getUserType() != UserType.ADM){
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        ExceptionData exceptionData = new ExceptionData("User do not have the necessary roles");
+                        response.getWriter().write(convertObjectToJson(exceptionData));
+                        return;
+                    }
+                }
                 filterChain.doFilter(request, response);
             } catch(RuntimeException e){
                 ExceptionData exceptionData;
@@ -56,6 +73,17 @@ public class SecurityFilter extends OncePerRequestFilter {
                 }
                 response.getWriter().write(convertObjectToJson(exceptionData));
             }
+        }
+        else{
+            String requestURI = request.getRequestURI();
+            String[] uriParts = requestURI.split("/");
+            if (!Arrays.asList(uriParts).contains("login")){
+                ExceptionData exceptionData = new ExceptionData("No JWT was passed");
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.getWriter().write(convertObjectToJson(exceptionData));
+                return;
+            }
+            filterChain.doFilter(request, response);
         }
     }
 

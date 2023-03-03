@@ -1,6 +1,7 @@
-package com.example.school.controller;
+package com.example.school.controller.user;
 
 import com.example.school.entity.Student;
+import com.example.school.entity.UserType;
 import com.example.school.mapper.UserMapper;
 import com.example.school.records.UserData;
 import com.example.school.records.UserRequestData;
@@ -15,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -24,24 +26,20 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private StudentService studentService;
-
-    @Autowired
     private UserMapper userMapper;
 
     @GetMapping("/all")
-    public ResponseEntity<List<UserData>> getAllUsers(){
-        List<UserData> users = new ArrayList<>();
-        userService.getAllUsers().forEach(user -> users.add(userMapper.userToUserData(user)));
+    public ResponseEntity getAllUsers(){
+        List<Object> users = userService.getAllUsers().stream()
+                .map(user -> {
+                    if (user.getUserType() == UserType.STUDENT) {
+                        return userMapper.studentToStudentData((Student) user);
+                    } else {
+                        return userMapper.userToUserData(user);
+                    }
+                })
+                .collect(Collectors.toList());
         return ResponseEntity.ok(users);
     }
 
-    @PostMapping("/create-student")
-    @Transactional
-    public ResponseEntity createStudent(@RequestBody @Valid UserRequestData requestData, UriComponentsBuilder uriBuilder) {
-        Student student = studentService.createStudent(requestData);
-        var uri = uriBuilder.path("/users/{id}").buildAndExpand(student.getId()).toUri();
-        UserData response = userMapper.userToUserData(student);
-        return ResponseEntity.created(uri).body(response);
-    }
 }

@@ -1,15 +1,9 @@
 package com.example.school.helpers;
 
-import org.springframework.cglib.core.Local;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-public class DataHelper {
+public class DateHelper {
 
     private static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
