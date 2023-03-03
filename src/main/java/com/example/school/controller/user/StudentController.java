@@ -1,6 +1,8 @@
 package com.example.school.controller.user;
 
+import com.example.school.annotation.ProtectedEndpoint;
 import com.example.school.entity.Student;
+import com.example.school.entity.UserType;
 import com.example.school.mapper.UserMapper;
 import com.example.school.records.UserData;
 import com.example.school.records.UserRequestData;
@@ -24,6 +26,7 @@ public class StudentController {
 
     @PostMapping("/create-student")
     @Transactional
+    @ProtectedEndpoint(allowedUserTypes = {UserType.ADM})
     public ResponseEntity createStudent(@RequestBody @Valid UserRequestData requestData, UriComponentsBuilder uriBuilder) {
         Student student = studentService.createStudent(requestData);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(student.getId()).toUri();
