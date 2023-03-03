@@ -1,5 +1,6 @@
 package com.example.school.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
@@ -19,6 +20,7 @@ import java.util.Date;
 @Table(name = "students")
 @PrimaryKeyJoinColumn(name = "user_id")
 public class Student extends User{
+    @Column(unique = true)
     private String registration;
 
     public Student(String name, String cpf, String email, String password, LocalDate bornDate, UserType userType, String registration) {

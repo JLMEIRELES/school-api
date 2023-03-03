@@ -46,7 +46,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 String requestURI = request.getRequestURI();
                 String[] uriParts = requestURI.split("/");
-                String[] createStatements = {"create-student", "create,administrator", "create-teacher"};
+                String[] createStatements = {"create-student", "create-administrator", "create-teacher"};
                 if (Arrays.stream(uriParts).anyMatch(part -> List.of(createStatements).contains(part))) {
                     User principal = (User) authentication.getPrincipal();
                     if (principal.getUserType() != UserType.ADM){
