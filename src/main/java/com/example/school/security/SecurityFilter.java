@@ -2,6 +2,7 @@ package com.example.school.security;
 
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.example.school.annotation.ProtectedEndpoint;
 import com.example.school.entity.User;
 import com.example.school.entity.UserType;
 import com.example.school.records.exceptions.ExceptionData;
@@ -13,17 +14,24 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -33,6 +41,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -44,12 +55,20 @@ public class SecurityFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                String requestURI = request.getRequestURI();
-                String[] uriParts = requestURI.split("/");
-                String[] createStatements = {"create-student", "create-administrator", "create-teacher"};
-                if (Arrays.stream(uriParts).anyMatch(part -> List.of(createStatements).contains(part))) {
+                HandlerExecutionChain handlerExecutionChain = Objects.requireNonNull(requestMappingHandlerMapping.getHandler(request), "Handler not found for request " + request.getRequestURI());
+                HandlerMethod handlerMethod = (HandlerMethod) handlerExecutionChain.getHandler();
+                if (AnnotationUtils.findAnnotation(handlerMethod.getMethod(), ProtectedEndpoint.class) != null) {
+                    ProtectedEndpoint annotation = handlerMethod.getMethodAnnotation(ProtectedEndpoint.class);
+                    assert annotation != null;
+                    UserType[] allowedRules = annotation.allowedUserTypes();
                     User principal = (User) authentication.getPrincipal();
-                    if (principal.getUserType() != UserType.ADM){
+                    var selfUpdate = annotation.selfUpdate();
+                    String[] uris = request.getRequestURI().split("/");
+                    var change = false;
+                    if(selfUpdate){
+                        change = canBeChanged(principal, uris);
+                    }
+                    if (!Arrays.asList(allowedRules).contains(principal.getUserType()) && !change){
                         response.setStatus(HttpStatus.UNAUTHORIZED.value());
                         ExceptionData exceptionData = new ExceptionData("User do not have the necessary roles");
                         response.getWriter().write(convertObjectToJson(exceptionData));
@@ -57,21 +76,16 @@ public class SecurityFilter extends OncePerRequestFilter {
                     }
                 }
                 filterChain.doFilter(request, response);
-            } catch(RuntimeException e){
-                ExceptionData exceptionData;
-                if (e instanceof JWTCreationException ){
-                    response.setStatus(HttpStatus.FORBIDDEN.value());
-                     exceptionData = new ExceptionData("Error on generate JWT");
-                }
-                else if(e instanceof JWTVerificationException){
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                    exceptionData = new ExceptionData("Invalid or Expired JWT");
-                }
-                else{
-                    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-                    exceptionData = new ExceptionData(e.getMessage());
-                }
+            } catch (JWTCreationException e) {
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                ExceptionData exceptionData = new ExceptionData("Error on generate JWT");
                 response.getWriter().write(convertObjectToJson(exceptionData));
+            } catch (JWTVerificationException e) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                ExceptionData exceptionData = new ExceptionData("Invalid or Expired JWT");
+                response.getWriter().write(convertObjectToJson(exceptionData));
+            } catch (Exception e) {
+                throw new ServletException("Error processing request", e);
             }
         }
         else{
@@ -102,5 +116,9 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
+    }
+
+    private boolean canBeChanged(User user, String[] uris){
+        return Arrays.asList(uris).contains(user.getId().toString());
     }
 }

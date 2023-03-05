@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
     public UserData userToUserData(User user){
-        return new UserData(user.getName(), DateHelper.toString(user.getBornDate()), user.getEmail(), user.getUserType().toString());
+        return new UserData(user.getName(), DateHelper.toString(user.getBornDate()), user.getEmail(), user.getUserType().toString(), user.getCpf());
     }
 
     public StudentData studentToStudentData(Student student){
-        return new StudentData(student.getName(), DateHelper.toString(student.getBornDate()), student.getEmail(), student.getUserType().toString(), student.getRegistration());
+        return new StudentData(student.getName(), DateHelper.toString(student.getBornDate()), student.getEmail(), student.getUserType().toString(), student.getRegistration(), student.getCpf());
     }
 }
