@@ -4,6 +4,7 @@ import com.example.school.annotation.ProtectedEndpoint;
 import com.example.school.entity.Student;
 import com.example.school.entity.UserType;
 import com.example.school.mapper.UserMapper;
+import com.example.school.records.StudentData;
 import com.example.school.records.UserData;
 import com.example.school.records.UserRequestData;
 import com.example.school.service.StudentService;

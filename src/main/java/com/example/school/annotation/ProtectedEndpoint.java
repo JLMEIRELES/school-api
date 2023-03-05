@@ -8,4 +8,6 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface ProtectedEndpoint {
     UserType[] allowedUserTypes() default {};
+
+    boolean selfUpdate() default false;
 }

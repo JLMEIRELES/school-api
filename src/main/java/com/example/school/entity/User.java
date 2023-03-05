@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -60,9 +61,8 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(UserType.values())
-                .map(userType -> new SimpleGrantedAuthority(userType.name()))
-                .collect(Collectors.toList());
+        SimpleGrantedAuthority simple = new SimpleGrantedAuthority(this.getUserType().toString());
+        return List.of(simple);
     }
 
     @Override

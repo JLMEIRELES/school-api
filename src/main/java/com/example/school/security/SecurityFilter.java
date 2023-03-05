@@ -28,6 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +62,13 @@ public class SecurityFilter extends OncePerRequestFilter {
                     assert annotation != null;
                     UserType[] allowedRules = annotation.allowedUserTypes();
                     User principal = (User) authentication.getPrincipal();
-                    if (!Arrays.asList(allowedRules).contains(principal.getUserType())){
+                    var selfUpdate = annotation.selfUpdate();
+                    String[] uris = request.getRequestURI().split("/");
+                    var change = false;
+                    if(selfUpdate){
+                        change = canBeChanged(principal, uris);
+                    }
+                    if (!Arrays.asList(allowedRules).contains(principal.getUserType()) && !change){
                         response.setStatus(HttpStatus.UNAUTHORIZED.value());
                         ExceptionData exceptionData = new ExceptionData("User do not have the necessary roles");
                         response.getWriter().write(convertObjectToJson(exceptionData));
@@ -109,5 +116,9 @@ public class SecurityFilter extends OncePerRequestFilter {
         }
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(object);
+    }
+
+    private boolean canBeChanged(User user, String[] uris){
+        return Arrays.asList(uris).contains(user.getId().toString());
     }
 }
