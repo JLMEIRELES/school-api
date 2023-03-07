@@ -9,11 +9,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Arrays;
+import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
+import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -32,9 +31,18 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
     private String password;
-    private Date bornDate;
+    private LocalDate bornDate;
     @Enumerated(EnumType.STRING)
     private UserType userType;
+
+    public User(String name, String cpf, String email, String password, LocalDate bornDate, UserType userType) {
+        this.name = name;
+        this.cpf = cpf;
+        this.email = email;
+        this.password = password;
+        this.bornDate = bornDate;
+        this.userType = userType;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -51,9 +59,8 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(UserType.values())
-                .map(userType -> new SimpleGrantedAuthority(userType.name()))
-                .collect(Collectors.toList());
+        SimpleGrantedAuthority simple = new SimpleGrantedAuthority(this.getUserType().toString());
+        return List.of(simple);
     }
 
     @Override

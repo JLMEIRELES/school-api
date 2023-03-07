@@ -1,0 +1,1 @@
+ALTER TABLE students ADD CONSTRAINT UK_registration UNIQUE (registration);
