@@ -1,26 +1,43 @@
 package com.example.school.service;
 
+import com.example.school.entity.Student;
 import com.example.school.entity.User;
+import com.example.school.entity.UserType;
 import com.example.school.mapper.UserMapper;
+import com.example.school.records.StudentData;
 import com.example.school.records.UserData;
 import com.example.school.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserMapper userMapper;
+
     public User findByEmail(String email){
         return (User) userRepository.findByEmail(email);
     }
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
+    public List<Record> getAllUsers(){
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .filter(user -> user.getUserType() == UserType.STUDENT || user.getUserType() == UserType.ADM)
+                .map(user -> {
+                    if (user.getUserType() == UserType.STUDENT) {
+                        return userMapper.studentToStudentData((Student) user);
+                    } else {
+                        return userMapper.userToUserData(user);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     public User getById(Long id){
